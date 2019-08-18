@@ -1,1 +1,4 @@
 nimcache/
+
+# vs code local configuration
+.vscode
