@@ -10,4 +10,5 @@ import unittest
 import coloredString
 
 test "colored string":
-  echo "Is this string blue?".blue
+    echo "Is this string blue?".blue
+    require true
