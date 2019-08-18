@@ -8,5 +8,6 @@
 import unittest
 
 import coloredString
-test "can add":
-  check add(5, 5) == 10
+
+test "colored string":
+  echo "Is this string blue?".blue
