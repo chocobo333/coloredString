@@ -3,7 +3,7 @@
 # but you can remove it if you wish.
 
 
-## Module that outputs colored string to standard output (terminal).
+## This module provides a way to output decorated string to standard output (terminal) with escape sequence.
 
 type
     Modification {.pure.} = enum
@@ -85,3 +85,7 @@ proc blue*[T: HasString](self: T): ColoredString =
 proc bold*[T: HasString](self: T): ColoredString =
     result = colorString(self)
     result.modification = Modification.Bold
+
+proc underline*[T: HasString](self: T): ColoredString =
+    result = colorString(self)
+    result.modification = Modification.Underline
