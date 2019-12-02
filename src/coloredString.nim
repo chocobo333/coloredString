@@ -73,6 +73,11 @@ template colorNum*(a: untyped) =
     result.colorMode = ColorMode.ColorNum
     result.color.num = ColorNum.a
 
+proc colorRgb*(self: HasString, r, g, b: int8): ColoredString =
+    result = colorString(self)
+    result.colorMode = ColorMode.Rgb
+    result.color.rgb = (r, g, b)
+
 proc red*[T: HasString](self: T): ColoredString =
     colorNum(Red)
 
