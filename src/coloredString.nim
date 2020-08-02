@@ -5,6 +5,10 @@
 
 ## This module provides a way to output decorated string to standard output (terminal) with escape sequence.
 
+import macros
+import strutils
+
+
 type
     Modification {.pure.} = enum
         Nothing
@@ -27,24 +31,29 @@ type
         Green
         Yellow
         Blue
-        Magenda
+        Magenta
         Cyan
         White
-    rgb = (int8, int8, int8)
-    Color {.union.} = object
-        rgb: rgb
-        colorCode: int8
-        num: ColorNum
+    Rgb = (int8, int8, int8)
+    Color = object
+        case mode: ColorMode
+        of ColorMode.Default:
+            nil
+        of ColorMode.Rgb:
+            rgb: Rgb
+        of ColorMode.ColorCode:
+            colorCode: int8
+        of ColorMode.ColorNum:
+            num: ColorNum
     ColoredString = object
         data: string
         modification: Modification
-        colorMode: ColorMode
         color: Color
 
 proc `$`*(self: ColoredString): string =
     if ord(self.modification) != 0:
         result &= "\e[" & $ord(self.modification) & "m"
-    case self.colorMode:
+    case self.color.mode:
         of ColorMode.Default:
             discard
         of ColorMode.Rgb:
@@ -68,29 +77,41 @@ proc colorString(a: ColoredString): ColoredString =
 proc colorString(a: HasString): ColoredString =
     ColoredString(data: $a)
 
-template colorNum*(a: untyped) =
-    result = colorString(self)
-    result.colorMode = ColorMode.ColorNum
-    result.color.num = ColorNum.a
+template colorNum*(a: typed) =
+    proc a*[T: string](self: T): ColoredString =
+        result = colorString(self)
+        result.color = Color(mode: ColorMode.ColorNum, num: ColorNum.a)
+
+macro colorNum(): untyped =
+    result = newStmtList()
+    for e in ColorNum:
+        let
+            p = ident ($e).toLower
+            cl = ident $e
+        result.add quote do:
+            proc `p`*[T: HasString](self: T): ColoredString =
+                result = colorString(self)
+                result.color = Color(mode: ColorMode.ColorNum, num: ColorNum.`cl`)
+
+colorNum()
 
 proc colorRgb*(self: HasString, r, g, b: int8): ColoredString =
     result = colorString(self)
     result.colorMode = ColorMode.Rgb
     result.color.rgb = (r, g, b)
 
-proc red*[T: HasString](self: T): ColoredString =
-    colorNum(Red)
-
-proc green*[T: HasString](self: T): ColoredString =
-    colorNum(Green)
-
-proc blue*[T: HasString](self: T): ColoredString =
-    colorNum(Blue)
-
-proc bold*[T: HasString](self: T): ColoredString =
+proc rgb*[T: HasString](self: T, r, g, b: int8): ColoredString =
     result = colorString(self)
-    result.modification = Modification.Bold
+    result.color = Color(mode: ColorMode.rgb, rgb: (r, g, b))
 
-proc underline*[T: HasString](self: T): ColoredString =
-    result = colorString(self)
-    result.modification = Modification.Underline
+macro modification(): untyped =
+    result = newStmtList()
+    for e in Modification:
+        let
+            p = ident ($e).toLower
+            enm = ident $e
+        result.add quote do:
+            proc `p`*[T: HasString](self: T): ColoredString =
+                result = colorString(self)
+                result.modification = Modification.`enm`
+modification()
