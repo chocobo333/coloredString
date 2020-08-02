@@ -11,4 +11,7 @@ import coloredString
 
 test "colored string":
     echo "Is this string blue?".blue
+    echo "magenta".magenta
+    echo "cyan underline".cyan.underline
+    echo "bold".bold
     require true
